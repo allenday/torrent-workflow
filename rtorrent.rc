@@ -1,0 +1,34 @@
+# rTorrent configuration file
+#
+# While editing: please remember there are other people on your server!
+
+directory = ~/private/rtorrent/data
+session = ~/private/rtorrent/work
+
+system.method.set_key = event.download.finished,some_name_for_this_command,"execute=~/bin/process_finished.sh,$d.get_name="
+
+
+schedule = watch_directory, 5, 60, load_start=~/private/rtorrent/watch/*.torrent
+schedule = untied_directory, 5, 60, stop_untied=
+
+schedule = low_diskspace, 5, 120, close_low_diskspace=100M
+
+# Private trackers only please
+peer_exchange = no
+tracker_numwant = -1
+use_udp_trackers = yes
+port_range = 50000-60000
+# Increasing these values does not normally increase speed but can negatively impact the server -- please be careful
+min_peers = 2
+max_peers = 40
+min_peers_seed = 2
+max_peers_seed = 40
+
+check_hash = no
+system.file_allocate.set = yes
+encryption = allow_incoming,enable_retry
+
+# Start rutorrent plugins automatically
+execute = {sh,-c,/usr/bin/php ~/www/flywheel.ephialtes.feralhosting.com/public_html/rutorrent/php/initplugins.php getenv("USER") &}
+
+scgi_local = ~/private/rtorrent/.socket
