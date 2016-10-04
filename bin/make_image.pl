@@ -21,6 +21,7 @@ my $INFILE = shift @ARGV;
 
 warn "METHOD=$METHOD";
 
+mkdir(qq($OUTDIR));
 mkdir(qq($OUTDIR/$METHOD));
 
 if ( $METHOD eq "keyframe_scene:0.40" ) {
@@ -56,22 +57,24 @@ sub rename_offsets_jpg {
     my @F = split /\s+/, $line;
     my $t = $F[5];
     $t =~ s/t://;
-    $t = int($t) + 1;
     push @offsets, $t;
   }
   close(O);
   opendir(D, "$outdir/$method");
-  while ( my $ent = readdir(D) ) {
+  my @ents = sort readdir(D);
+  closedir(D);
+  foreach my $ent ( @ents ) {
     next unless $ent =~ m#^x(\d+)_(.+).jpg#;
     my $frame = $1;
     my $rest = $2;
 
-    my $t = $offsets[$frame];
+    #offsets file is zero based, template filenames are one based
+    my $t = $offsets[$frame -1];
     my $hms = sec2hms( $t );
 
-    my $outfile = sprintf(qq(t%05d_%s_%s.jpg), $t, $hms, $rest);
+    my $outfile = sprintf(qq(t%s_%05.3f_%s.jpg), $hms, $t, $rest);
 
-    File::Copy::mv( "$outdir/$method/$ent", "$outdir/$method/$outfile" );    
+    File::Copy::move( "$outdir/$method/$ent", "$outdir/$method/$outfile" );    
   }
 }
 
@@ -81,18 +84,21 @@ sub rename_timestep_jpg {
 
   my $t = 0;
   opendir(D, $outdir);
-  while ( my $ent = readdir(D) ) {
+  my @ents = sort readdir(D);
+  closedir(D);
+  foreach my $ent ( @ents ) {
     next unless $ent =~ m#^x(\d+)_(.+).jpg#;
     my $frame = $1;
     my $rest = $2;
 
     my $hms = sec2hms( $t );
 
+    my $outfile = sprintf(qq(t%s_%05.3f_%s.jpg), $hms, $t, $rest );
+
     $t += $stepsize;
 
-    my $outfile = sprintf(qq(t%05d_%s_%s.jpg), $t, $hms, $rest );
-
-    File::Copy::mv( "$outdir/$ent", "$outdir/$outfile" );    
+    print qq(File::Copy::mv( "$outdir/$ent", "$outdir/$outfile" )\n);
+    File::Copy::move( "$outdir/$ent", "$outdir/$outfile" );
   }
   closedir(D);
 }
