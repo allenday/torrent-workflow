@@ -1,1 +1,1 @@
-*/10 * * * * ~/bin/rtcontrol is_ghost=yes --delete --yes
+*/10 * * * * ~/bin/rtcontrol is_complete=yes --delete --yes
