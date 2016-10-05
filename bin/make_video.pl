@@ -15,15 +15,22 @@ use POSIX;
 
 my $DURATION = shift @ARGV;
 my $INFILE = shift @ARGV;
+my $INDIR = shift @ARGV;
 my $OUTDIR = shift @ARGV;
 
-opendir(D, $OUTDIR);
-while ( my $ent = readdir(D) ) {
-  next unless $ent =~ m#^t(\d+)_.*jpg#;
-  my $t = $1;
+mkdir( $OUTDIR );
+opendir(D, $INDIR);
+my @ents = sort readdir(D);
+foreach my $ent ( @ents ) {
+warn $ent;
+  next unless $ent =~ m#^t([\d:]+)_([\d\.]+)_.*jpg#;
+warn "ok";
+
+  my $t = $2;
   my $hms = sec2hms( $t );
 
-  my $outfile = sprintf(qq(t%05d_%s_clip:%02d.mp4), $t, $hms, $DURATION);
+  my $outfile = sprintf(qq(t%s_%05.3f_clip:%02d.mp4), $hms, $t, $DURATION);
+#warn "$t\t$hms\t$outfile";
 
   system(qq(~/local/bin/ffmpeg -ss $t -y -i "$INFILE" -vf scale="trunc(oh*a/2)*2:240" -t $DURATION $OUTDIR/$outfile));
 }
